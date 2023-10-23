@@ -47,6 +47,5 @@ private:
     const std::string syslog_proc_name_ = "Deleterdaemon";
     const unsigned int interval_s_ = 20;
 
-    bool execute_;
     static deleting_folders folders_;
 };
