@@ -1,3 +1,0 @@
-folder1 file1
-folder2 file2
-folder3 file3
