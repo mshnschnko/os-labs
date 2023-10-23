@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <syslog.h>
 #include <unistd.h>
-// #include "../Config/Config.h"
 
 
 using deleting_folders = std::vector<std::pair<std::filesystem::path, std::filesystem::path>>;
@@ -28,8 +27,6 @@ public:
     static Deleter& getInstance(const std::string& config_filepath);
     void start() const;
 
-    void read_config();
-    // void start(std::string config_file_path);
 
 private:
     static void sighup_handler(int signum);
@@ -39,13 +36,11 @@ private:
     void close_running() const;
     
     void do_delete(deleting_folders const &folders) const;
-    // void set_config_file(std::string config_file_path);
     Deleter(const std::string& config_filepath);
 
-    static void read(const std::string &filepath);
+    static void read_config(const std::string &filepath);
 
     static std::string config_file_;
-    // static Config config_;
 
     const std::string pid_file_path_ = std::filesystem::absolute("Deleterdaemon.pid");
     const std::string proc_dir_ = "/proc";
@@ -54,9 +49,4 @@ private:
 
     bool execute_;
     static deleting_folders folders_;
-    // const std::chrono::seconds interval_ = std::chrono::seconds(20);
-    // const std::string pid_filepath = std::filesystem::absolute("Deleterdaemon.pid");
-    // const std::string proc_dir = "/proc";
-
-    // static Deleter& getInstance();
 };

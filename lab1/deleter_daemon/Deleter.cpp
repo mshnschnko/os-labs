@@ -36,7 +36,7 @@ Deleter &Deleter::getInstance(const std::string& config_filepath) {
         return deleter;
 }
 
-void Deleter::read(const std::string &filepath) {
+void Deleter::read_config(const std::string &filepath) {
         folders_.clear();
 
         std::ifstream f(filepath);
@@ -49,7 +49,7 @@ void Deleter::read(const std::string &filepath) {
 
 Deleter::Deleter(const std::string &config_filepath) {
     config_file_ = fs::absolute(config_filepath);
-    Deleter::read(config_file_);
+    Deleter::read_config(config_file_);
 }
 
 void Deleter::close_running() const {
@@ -61,7 +61,7 @@ void Deleter::close_running() const {
 }
 
 void Deleter::sighup_handler(int signum) {
-    Deleter::read(config_file_);
+    Deleter::read_config(config_file_);
 }
 
 void Deleter::sigterm_handler(int sigum) {
