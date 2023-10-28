@@ -42,7 +42,7 @@ private:
 
     static std::string config_file_;
 
-    const std::string pid_file_path_ = std::filesystem::absolute("Deleterdaemon.pid");
+    const std::string pid_file_path_ = "/var/run/Deleterdaemon.pid";
     const std::string proc_dir_ = "/proc";
     const std::string syslog_proc_name_ = "Deleterdaemon";
     const unsigned int interval_s_ = 20;
