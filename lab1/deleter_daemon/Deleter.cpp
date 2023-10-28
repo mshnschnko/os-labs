@@ -23,11 +23,13 @@ void Deleter::start() const {
 
 void Deleter::do_delete(deleting_folders const & folders) const {
     for (auto& pair : folders) {
-        if(fs::exists(pair.first / pair.second))
-            continue;
-        else
-            for (const auto &file : fs::directory_iterator(pair.first))
-                    fs::remove(file);
+        if(fs::exists(pair.first)) {
+            if(fs::exists(pair.first / pair.second))
+                continue;
+            else
+                for (const auto &file : fs::directory_iterator(pair.first))
+                        fs::remove(file);
+        }
     }
 }
 
@@ -40,16 +42,24 @@ void Deleter::read_config(const std::string &filepath) {
         folders_.clear();
 
         std::ifstream f(filepath);
-        std::string dir, ignfile;
+        fs::path dir, ignfile;
 
         while (f >> dir >> ignfile) {
-            folders_.push_back(std::make_pair(fs::path(dir), fs::path(ignfile)));
+                folders_.push_back(std::make_pair(dir, ignfile));
         }
     }
 
 Deleter::Deleter(const std::string &config_filepath) {
-    config_file_ = fs::absolute(config_filepath);
-    Deleter::read_config(config_file_);
+    if (fs::exists(config_filepath)) {
+        config_file_ = fs::absolute(config_filepath);
+        Deleter::read_config(config_file_);
+    }
+    else {
+        openlog("Deleterdaemon", LOG_PID, LOG_DAEMON);
+        syslog(LOG_NOTICE, "Config file does not exist. Daemon terminated");
+        closelog();
+        exit(EXIT_FAILURE);
+    }
 }
 
 void Deleter::close_running() const {
