@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.22)
+set(CMAKE_CXX_STANDARD 17)
+project(Deleter_daemon)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+include_directories(${CMAKE_SOURCE_DIR}/deleter_daemon)
+add_library(Deleter ${CMAKE_SOURCE_DIR}/deleter_daemon/Deleter.h ${CMAKE_SOURCE_DIR}/deleter_daemon/Deleter.cpp)
+add_executable(main ${CMAKE_SOURCE_DIR}/main.cpp)
+target_link_libraries(main Deleter)
