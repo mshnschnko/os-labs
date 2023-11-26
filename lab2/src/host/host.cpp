@@ -84,7 +84,8 @@ void Host::KillClient() {
 void Host::StartGame() {
     bool dead_prev_round = false;
     int round_number = 1;
-    future_input = std::async(async_input);
+    // if (future_input.wait_for(std::chrono::seconds(0)) == std::future_status::ready) // при коннекте нового клиента старт гейм запускает еще один поток ввода
+        future_input = std::async(async_input);
     do {
         dead_prev_round = state == GoatState::DEAD;
         if (!StartRound(round_number++)) {
