@@ -29,6 +29,7 @@ private:
 
     std::future<int> future_input;
     std::function<int()> async_input = []() -> int { int host_num; std::cin >> host_num; return host_num; };
+    bool future_has_been_activated = false;
 
     Host();
     void Connect(pid_t client_pid);
