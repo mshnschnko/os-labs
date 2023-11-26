@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <memory>
 #include <semaphore.h>
+#include <signal.h>
 
 class Client {
 private:
@@ -15,7 +16,7 @@ private:
     static constexpr int min_num = 1;
     static constexpr int max_num_for_alive = 100;
     static constexpr int max_num_for_dead = 50;
-    static constexpr int connection_timeout = 5;
+    static constexpr int connection_timeout = 10;
 
     sem_t* sem_read;
     sem_t* sem_write;
@@ -29,11 +30,12 @@ private:
     bool GetState();
     int GenerateRandomNumber(int a, int b);
 
-    // static void signal_handler(int signum);
+    // static void SignalHandler(int signum, siginfo_t *si, void* data);
     
 public:
     static Client& GetInstance(pid_t host_pid);
-    void SetHostPid(pid_t host_pid);
+    // static Client& GetInstance();
+    // void SetHostPid(pid_t host_pid);
     void Run();
     ~Client();
 };

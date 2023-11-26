@@ -8,6 +8,9 @@
 #include <memory>
 #include <signal.h>
 #include <semaphore.h>
+#include <future>
+#include <functional>
+#include <iostream>
 
 class Host {
 private:
@@ -24,9 +27,12 @@ private:
     static constexpr int variance_for_dead = 20;
     static constexpr int enter_timeout = 3;
 
+    std::future<int> future_input;
+    std::function<int()> async_input = []() -> int { int host_num; std::cin >> host_num; return host_num; };
+
     Host();
     void Connect(pid_t client_pid);
-    bool StartRound();
+    bool StartRound(int round_number);
     void KillClient();
     void Terminate(int status_code);
     static void SignalHandler(int signum, siginfo_t *si, void* data);

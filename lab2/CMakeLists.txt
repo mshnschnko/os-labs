@@ -15,13 +15,13 @@ find_package(Threads)
 set(HOST_SOURCES
         src/host/host.h
         src/host/host.cpp
-        # src/host/main.cpp
+        src/host/main.cpp
         src/goat_state.h)
 
 set(CLIENT_SOURCES
        src/client/client.h
        src/client/client.cpp
-    #    src/client/main.cpp
+       src/client/main.cpp
        src/goat_state.h)
 
 file(GLOB CONN_FILES src/connections/conn_*.h)

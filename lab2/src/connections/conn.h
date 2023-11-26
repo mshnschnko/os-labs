@@ -14,8 +14,8 @@ public:
     virtual bool Read(void* buffer, size_t size) = 0;
     virtual bool Write(void* buffer, size_t size) = 0;
     virtual void Close() = 0;
-    // virtual ~Conn() = default;
-// protected:
-//     pid_t host_pid;
-//     Type type;
+    virtual ~Conn() = default;
+protected:
+    pid_t host_pid;
+    Type type;
 };

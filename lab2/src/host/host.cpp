@@ -65,7 +65,6 @@ pid_t Host::GetPid() {
 
 void Host::Connect(pid_t client_pid) {
     this->client_pid = client_pid;
-    std::cout << this->client_pid << std::endl;
     if (!connection->Open()) {
         syslog(LOG_ERR, "Could not connect to client. Host will terminate");
         std::cout << "Could not connect to client. Host will terminate" << std::endl;
@@ -84,18 +83,23 @@ void Host::KillClient() {
 
 void Host::StartGame() {
     bool dead_prev_round = false;
+    int round_number = 1;
+    future_input = std::async(async_input);
     do {
         dead_prev_round = state == GoatState::DEAD;
-        if (!StartRound()) {
+        if (!StartRound(round_number++)) {
             std::cout << "Connection lost. Game finished" << std::endl;
             Terminate(EXIT_FAILURE);
         }
         std::cout << "PREV = " << (dead_prev_round) << " CUR = " << (state == GoatState::ALIVE ? "alive" : "dead") << std::endl;
-    } while (!dead_prev_round || state == GoatState::DEAD);
+    } while (!dead_prev_round || state != GoatState::DEAD);
     state = GoatState::GAMESTOP;
     SendState(state);
     std::cout << "Game over" << std::endl;
     KillClient();
+    connection->Close();
+    client_pid = -1;
+    state = GoatState::ALIVE;
 }
 
 bool Host::GetClientNumber(int* num) {
@@ -113,17 +117,20 @@ bool Host::SendState(GoatState state) {
     return rc;
 }
 
-bool Host::StartRound() {
-    static int round_number = 1;
+bool Host::StartRound(int round_number) {
+    // static int round_number = 1;
     std::cout << "Round №" << round_number << std::endl << "Enter number:" << std::endl;
     round_number++;
-    int host_num = -1;
-    std::future<int> future = std::async([] { int host_num = -1; std::cin >> host_num; return host_num; });
-    if (future.wait_for(std::chrono::seconds(enter_timeout)) == std::future_status::ready)
-        host_num = future.get();
-    if (host_num == -1 || host_num < min_number || host_num > max_number)
-        host_num = (rand()%(max_number - min_number + 1) + min_number);
-    std::cout << "random number = " << host_num << std::endl;
+    int host_num = (rand()%(max_number - min_number + 1) + min_number);
+    // std::future<int> future = std::async([] { int host_num = -1; std::cin >> host_num; return host_num; });
+    if (future_input.wait_for(std::chrono::seconds(enter_timeout)) == std::future_status::ready) {
+        int tmp_result = future_input.get();
+        if (tmp_result >= min_number && tmp_result <= max_number)
+            host_num = tmp_result;
+        future_input = std::async(async_input);
+    }
+    // if (host_num == -1 || host_num < min_number || host_num > max_number)
+    //     host_num = (rand()%(max_number - min_number + 1) + min_number);
     int client_num;
     if (!GetClientNumber(&client_num))
         return false;
@@ -151,14 +158,14 @@ bool Host::StartRound() {
 }
 
 Host::~Host() {
-    connection->Close();
+    // connection->Close();
     sem_close(sem_read);
     sem_close(sem_write);
     closelog();
 }
 
-int main(int argc, char* argv[]) {
-    Host::GetInstance(); //.StartGame();
-    while (true);
-    return 0;
-}
+// int main(int argc, char* argv[]) {
+//     Host::GetInstance(); //.StartGame();
+//     while (true);
+//     return 0;
+// }
