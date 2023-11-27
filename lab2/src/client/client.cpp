@@ -99,7 +99,7 @@ int Client::GenerateRandomNumber(int a, int b) {
 bool Client::SendNumber() {
     int num = GenerateRandomNumber(min_num, state == GoatState::ALIVE ? max_num_for_alive : max_num_for_dead);
     syslog(LOG_INFO, "Sent number %d", num);
-    bool rc = connection->Write(static_cast<void*>(&num), sizeof(num));
+    bool rc = connection->Write(static_cast<void *>(&num), sizeof(num));
     sem_post(sem_write);
     return rc;
 }

@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <iostream>
 
 std::unique_ptr<Conn> Conn::GetConnection(pid_t host_pid, Type type) {
     return std::make_unique<ConnFifo>(host_pid, type);
@@ -16,10 +15,8 @@ ConnFifo::ConnFifo(pid_t host_pid, Type type) { // : host_pid(host_pid), type(ty
 }
 
 bool ConnFifo::Open() {
-    if (type == Type::HOST && access(filepath.c_str(), F_OK) == -1 && mkfifo(filepath.c_str(), 0777) == -1) {
-        std::cout << "MKFIFO ERROR = " << errno << std::endl;
+    if (type == Type::HOST && access(filepath.c_str(), F_OK) == -1 && mkfifo(filepath.c_str(), 0777) == -1)
         return false;
-    }
     fd = open(filepath.c_str(), O_RDWR);
     return fd != -1;
 }
