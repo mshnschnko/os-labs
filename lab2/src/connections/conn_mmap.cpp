@@ -54,16 +54,88 @@ ConnMmap::ConnMmap(pid_t host_pid, Type type) {
 //     return true;
 // }
 
+// bool ConnMmap::Open() {
+//     buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+//     if (buffer_ptr == MAP_FAILED) {
+//         perror("mmap for shared_buffer_ptr");
+//         return false;
+//     }
+
+//     // Добавьте отладочные выводы
+//     std::cout << "Shared buffer: " << buffer_ptr << std::endl;
+
+//     return true;
+// }
+
+// bool ConnMmap::Open() {
+//     if (type == Type::HOST) {
+//         std::cout << "shm_open host" << std::endl;
+//         fd = shm_open(NULL, O_CREAT | O_RDWR | O_EXCL, 0777);
+//         std::cout << "shm_open host success" << std::endl;
+//     }
+//     else {
+//         std::cout << "shm_open client success" << std::endl;
+//         fd = shm_open(NULL, O_RDWR, 0777);
+//         std::cout << "shm_open client success" << std::endl;
+//     }
+//     if (fd == -1) {
+//         std::cout << "fd == -1" << std::endl;
+//         return false;
+//     }
+//     ftruncate(fd, size);
+//     std::cout << "mmap" << std::endl;
+//     buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+//     std::cout << "mmap success" << std::endl;
+//     if (buffer_ptr == MAP_FAILED) {
+//         close(fd);
+//         if (type == Type::HOST)
+//             shm_unlink(NULL);
+//         return false;
+//     }
+//     return true;
+// }
+
 bool ConnMmap::Open() {
-    buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    if (buffer_ptr == MAP_FAILED) {
-        perror("mmap for shared_buffer_ptr");
-        return false;
+    if (type == Type::HOST) {
+        std::cout << "anon mmap host" << std::endl;
+        buffer_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        std::cout << "anon mmap host success" << std::endl;
+        if (buffer_ptr == MAP_FAILED)
+            return false;
     }
-
-    // Добавьте отладочные выводы
-    std::cout << "Shared buffer: " << buffer_ptr << std::endl;
-
+    else {
+        std::cout << "shm_open client" << std::endl;
+        fd = shm_open(NULL, O_RDWR | O_CREAT, 0666);
+        if (fd == -1) {
+            std::cout << "fd == -1" << std::endl;
+            std::cout << "ERRNO == " << errno << std::endl;
+            return false;
+        }
+        std::cout << "shm_open client success" << std::endl;
+        std::cout << "mmap" << std::endl;
+        // buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (buffer_ptr == MAP_FAILED) {
+            std::cout << "buffer_ptr == MAP_FAILED" << std::endl;
+            std::cout << "ERRNO == " << errno << std::endl;
+            return false;
+        }
+        std::cout << "mmap success" << std::endl;
+    }
+    // if (fd == -1) {
+    //     std::cout << "fd == -1" << std::endl;
+    //     return false;
+    // }
+    // ftruncate(fd, size);
+    // std::cout << "mmap" << std::endl;
+    // buffer_ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // std::cout << "mmap success" << std::endl;
+    // if (buffer_ptr == MAP_FAILED) {
+    //     close(fd);
+    //     if (type == Type::HOST)
+    //         shm_unlink(NULL);
+    //     return false;
+    // }
     return true;
 }
 
@@ -161,6 +233,7 @@ bool ConnMmap::Write(void* buffer, size_t size) {
 void ConnMmap::Close() {
     if (type == Type::HOST) {
         munmap(buffer_ptr, size);
+        shm_unlink("");
         // int ret2 = munmap(client_buffer_ptr, size);
         // if (ret1 == -1 || ret2 == -1) {
         //     std::cout << "munmap" << std::endl;

@@ -6,14 +6,10 @@
 
 class ConnMmap : public Conn {
 private:
-    // pid_t host_pid;
-    // Type type;
     size_t const size = 1024;
-    std::string filepath;
-public:
+    std::string filepath = "mmap";
     void* buffer_ptr;
-    // static void* host_buffer_ptr;
-    // static void* client_buffer_ptr;
+public:
 
     ConnMmap(pid_t host_pid, Type type);
     virtual bool Open() override;

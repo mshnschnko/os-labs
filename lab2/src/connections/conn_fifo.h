@@ -6,9 +6,6 @@
 
 class ConnFifo : public Conn {
 private:
-    // pid_t host_pid;
-    // Type type;
-    int fd;
     std::string filepath;
 public:
     ConnFifo(pid_t host_pid, Type type);

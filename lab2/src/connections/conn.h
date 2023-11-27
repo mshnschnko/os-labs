@@ -16,6 +16,7 @@ public:
     virtual void Close() = 0;
     virtual ~Conn() = default;
 protected:
+    int fd;
     pid_t host_pid;
     Type type;
 };

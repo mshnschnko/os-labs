@@ -8,7 +8,7 @@ std::unique_ptr<Conn> Conn::GetConnection(pid_t host_pid, Type type) {
     return std::make_unique<ConnFifo>(host_pid, type);
 }
 
-ConnFifo::ConnFifo(pid_t host_pid, Type type) { // : host_pid(host_pid), type(type) {
+ConnFifo::ConnFifo(pid_t host_pid, Type type) {
     this->host_pid = host_pid;
     this->type = type;
     filepath = "/tmp/fifo" + std::to_string(host_pid);

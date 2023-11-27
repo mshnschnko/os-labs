@@ -6,9 +6,6 @@
 
 class ConnShm : public Conn {
 private:
-    // pid_t host_pid;
-    // Type type;
-    int fd;
     size_t const size = 1024;
     void* buffer_ptr = nullptr;
     std::string filepath;

@@ -15,8 +15,6 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
     Client& client = Client::GetInstance(host_pid);
-    // Client& client = Client::GetInstance();
-    // client.SetHostPid(host_pid);
     client.Run();
     return 0;
 }

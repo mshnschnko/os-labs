@@ -16,7 +16,7 @@ private:
     static constexpr int min_num = 1;
     static constexpr int max_num_for_alive = 100;
     static constexpr int max_num_for_dead = 50;
-    static constexpr int connection_timeout = 10;
+    static constexpr int connection_timeout = 5;
 
     sem_t* sem_read;
     sem_t* sem_write;
@@ -30,12 +30,8 @@ private:
     bool GetState();
     int GenerateRandomNumber(int a, int b);
 
-    // static void SignalHandler(int signum, siginfo_t *si, void* data);
-    
 public:
     static Client& GetInstance(pid_t host_pid);
-    // static Client& GetInstance();
-    // void SetHostPid(pid_t host_pid);
     void Run();
     ~Client();
 };
