@@ -4,19 +4,21 @@
 
 #include <string>
 
-class ConnShm : public Conn {
+class ConnMmap : public Conn {
 private:
     // pid_t host_pid;
     // Type type;
-    int fd;
     size_t const size = 1024;
-    void* buffer_ptr = nullptr;
     std::string filepath;
 public:
-    ConnShm(pid_t host_pid, Type type);
+    void* buffer_ptr;
+    // static void* host_buffer_ptr;
+    // static void* client_buffer_ptr;
+
+    ConnMmap(pid_t host_pid, Type type);
     virtual bool Open() override;
     virtual bool Read(void* buffer, size_t size) override;
     virtual bool Write(void* buffer, size_t size) override;
     virtual void Close() override;
-    virtual ~ConnShm() = default;
+    virtual ~ConnMmap() = default;
 };
