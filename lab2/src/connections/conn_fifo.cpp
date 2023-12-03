@@ -15,7 +15,7 @@ ConnFifo::ConnFifo(pid_t host_pid, Type type) {
 }
 
 bool ConnFifo::Open() {
-    if (type == Type::HOST && access(filepath.c_str(), F_OK) == -1 && mkfifo(filepath.c_str(), 0777) == -1)
+    if (type == Type::HOST && mkfifo(filepath.c_str(), 0777) == -1)
         return false;
     fd = open(filepath.c_str(), O_RDWR);
     return fd != -1;
@@ -31,4 +31,5 @@ bool ConnFifo::Write(void* buffer, size_t size) {
 
 void ConnFifo::Close() {
     close(fd);
+    unlink(filepath.c_str());
 }
