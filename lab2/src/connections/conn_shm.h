@@ -8,7 +8,7 @@ class ConnShm : public Conn {
 private:
     size_t const size = 1024;
     void* buffer_ptr = nullptr;
-    std::string filepath;
+    int fd;
 public:
     ConnShm(pid_t host_pid, Type type);
     virtual bool Open() override;

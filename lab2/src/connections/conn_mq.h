@@ -3,15 +3,17 @@
 #include "conn.h"
 
 #include <string>
+#include <mqueue.h>
 
-class ConnFifo : public Conn {
+class ConnMq : public Conn {
 private:
-    int fd;
+    mqd_t mqd;
+    static constexpr int msg_size = 64;
 public:
-    ConnFifo(pid_t host_pid, Type type);
+    ConnMq(pid_t host_pid, Type type);
     virtual bool Open() override;
     virtual bool Read(void* buffer, size_t size) override;
     virtual bool Write(void* buffer, size_t size) override;
     virtual void Close() override;
-    virtual ~ConnFifo() = default;
+    virtual ~ConnMq() = default;
 };
