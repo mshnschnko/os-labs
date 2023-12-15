@@ -35,7 +35,7 @@ private:
   };
 
   static int Random(int minNum, int maxNum) {
-    return int((1.0 * std::rand() + 1) / (1.0 * RAND_MAX + 1) * (maxNum - minNum) + minNum);
+    return (int)(rand() % (maxNum - minNum + 1) + minNum);
   }
 
   static std::vector<int> GenVals(int size, int seed) {
