@@ -9,7 +9,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-// template<class FineSet>
 class Tester {
 private:
   static pthread_cond_t cv;
