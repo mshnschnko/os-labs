@@ -13,6 +13,7 @@ class Tester {
 private:
   static pthread_cond_t cv;
   static bool start;
+  static const int timeout_sec = 7;
 
   struct write_args_t {
     FineSet<int>* set;
@@ -262,13 +263,21 @@ public:
     auto vals = GenVals(size, seed);
 
     long long dt = 0;
-    for (int i = 0; i < numOfTests; ++i) {
+    int num_of_performed_tests = 0;
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < numOfTests; ++i, ++num_of_performed_tests) {
       FineSet<int> set;
       dt += WritersTest(n_writers, set, vals);
+      auto end = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+      if (duration > timeout_sec) {
+        std::cout << "Writing performance test timeout" << std::endl;
+        break;
+      }
     }
 
     std::cout << "Writing performance test\tn_writers: " << n_writers << "\tsize: " << size <<
-      "\ttime: " << dt / numOfTests << " ms" << std::endl;
+      "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
   }
 
   static void ReadersPerfTest(int n_readers, int size, int numOfTests) {
@@ -280,11 +289,21 @@ public:
     std::vector<int> checkArr(size, 0);
 
     long long dt = 0;
-    for (auto& set : sets)
+    auto start = std::chrono::high_resolution_clock::now();
+    int num_of_performed_tests = 0;
+    for (auto& set : sets) {
       dt += ReadersTest(n_readers, set, checkArr);
+      auto end = std::chrono::high_resolution_clock::now();
+      ++num_of_performed_tests;
+      auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+      if (duration > timeout_sec) {
+        std::cout << "Reading performance test timeout" << std::endl;
+        break;
+      }
+    }
 
     std::cout << "Reading performance test\tn_readers: " << n_readers << "\tsize: " << size <<
-      "\ttime: " << dt / numOfTests << " ms" << std::endl;
+      "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
   }
 
   static void GeneralPerfTest(int sizeForReading, int sizeForWriting, int numOfTests, int seed = 42) {
@@ -300,16 +319,24 @@ public:
 
     while (n_readers < maxThreads) {
       long long dt = 0;
-      for (int j = 0; j < numOfTests; ++j) {
+      int num_of_performed_tests = 0;
+      auto start = std::chrono::high_resolution_clock::now();
+      for (int j = 0; j < numOfTests; ++j, ++num_of_performed_tests) {
         FineSet<int> set;
         for (int i = 0; i < sizeForReading; ++i)
           set.Add(i);
         std::vector<int> checkArr(sizeForReading, 0);
         dt += GeneralTest(n_readers, n_writers, set, vals, checkArr);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+        if (duration > timeout_sec) {
+            std::cout << "General performance test timeout" << std::endl;
+            break;
+        }
       }
 
       std::cout << "n_readers: " << n_readers << "\tn_writers: " << n_writers <<
-       "\ttime: " << dt / numOfTests << " ms" << std::endl;
+       "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
 
       ++n_readers;
       --n_writers;
