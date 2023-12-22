@@ -36,19 +36,17 @@ private:
       set(set), threadNum(threadNum), step(step), checkArray(checkArray) {}
   };
 
-  static int Random(int minNum, int maxNum) {
+  static int Random(const int minNum, const int maxNum) {
     return (int)(rand() % (maxNum - minNum + 1) + minNum);
   }
 
-  static std::vector<int> GenVals(int size, int seed) {
-    const int MIN = size;
-    const int MAX = 3 * size;
+  static std::vector<int> GenVals(const int min, const int max, int size, int seed) {
 
     std::vector<int> res;
     res.reserve(size);
     std::srand(seed);
     for (int i = 0; i < size; ++i)
-      res.push_back(Random(MIN, MAX));
+      res.push_back(Random(min, max));
 
     return res;
   }
@@ -182,7 +180,7 @@ public:
 
   static void WritersFuncTest(int n_writers, int size, int seed = 42) {
     FineSet<int> set;
-    auto vals = GenVals(size, seed);
+    auto vals = GenVals(n_writers, 3 * n_writers, size, seed);
     WritersTest(n_writers, set, vals);
 
     std::string result = "success";
@@ -223,7 +221,7 @@ public:
   }
 
   static void GeneralFuncTest(int sizeForReading, int sizeForWriting, int seed = 42) {
-    auto vals = GenVals(sizeForWriting, seed);
+    auto vals = GenVals(sizeForReading, 3 * sizeForReading, sizeForWriting, seed);
     int maxThreads = sysconf(_SC_NPROCESSORS_ONLN);
 
     int n_readers = 1;
@@ -262,7 +260,7 @@ public:
   }
   
   static void WritersPerfTest(int n_writers, int size, int numOfTests, int seed = 42) {
-    auto vals = GenVals(size, seed);
+    auto vals = GenVals(n_writers, 3 * n_writers, size, seed);
 
     long long dt = 0;
     int num_of_performed_tests = 0;
@@ -309,14 +307,14 @@ public:
   }
 
   static void GeneralPerfTest(int sizeForReading, int sizeForWriting, int numOfTests, int seed = 42) {
-    auto vals = GenVals(sizeForWriting, seed);
+    auto vals = GenVals(sizeForReading, 3 * sizeForReading, sizeForWriting, seed);
 
     int maxThreads = sysconf(_SC_NPROCESSORS_ONLN);
 
     int n_readers = 1;
     int n_writers = maxThreads - 1;
 
-    std::cout << "General functional test\tsize for reading: " << sizeForReading <<
+    std::cout << "General performance test\tsize for reading: " << sizeForReading <<
       "\tsize for writing: " << sizeForWriting << std::endl;
 
     while (n_readers < maxThreads) {
