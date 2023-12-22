@@ -15,7 +15,6 @@ class Tester {
 private:
   static pthread_cond_t cv;
   static bool start;
-  static const int timeout_sec = 7;
 
   struct write_args_t {
     FineSet<int>* set;
@@ -74,15 +73,10 @@ private:
     write_args_t* args = static_cast<write_args_t*>(inputArgs);
     Synchronize();
     for (int i = args->begin; i < args->end; ++i) {
-		//debug std::cout << "i = " << i << ", v[i] = " << (*(args->vals))[i] << std::endl;
     	args->set->Add((*(args->vals))[i]);
 		if (args->set->Contains((*(args->vals))[i])) {
 			(*args->checkArray)[i] = 1;
 		}
-		// if (args->set->Add((*(args->vals))[i])) {
-		// 	std::cout << "added " << (*(args->vals))[i] << std::endl;
-		// 	(*args->checkArray)[i] = 1;
-		// }
 	}
 
     return (void*)nullptr;
@@ -112,12 +106,10 @@ private:
     int size = vals.size();
     int step = size / n_writers;
     int end = step;
-    // std::cout << "\nbegin: " << begin << " step: " << step << " end: " << end << std::endl;
     start = false;
     for (int i = 0; i < n_writers; ++i) {
       if (i == n_writers - 1)
         end = size;
-      //debug std::cout << "\nbegin: " << begin << " step: " << step << " end: " << end << std::endl;
       args.emplace_back(&set, begin, end, &vals, &checkArr);
       pthread_create(&threads[i], nullptr, _write, (void*)&args.back());
       begin += step;
@@ -178,16 +170,10 @@ private:
     PrepareWritersThreads(set, vals, writers, writersArgs, writeCheckArr);
 
     auto t1 = std::chrono::high_resolution_clock::now();
-    // struct timespec ts;
-    // int milliseconds = 1000;
-    // ts.tv_sec = milliseconds / 1000;
-    // ts.tv_nsec = (milliseconds % 1000) * 1000000;
     Start();
-    // nanosleep(&ts, nullptr);
     for (int i = 0; i < n_writers; ++i)
       pthread_join(writers[i], nullptr);
 
-    // nanosleep(&ts, nullptr);
     for (int i = 0; i < n_readers; ++i)
       pthread_join(readers[i], nullptr);
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -196,6 +182,8 @@ private:
   }
 
 public:
+	static int timeout_sec;
+
   static void WritersFuncTest(int n_writers, int size, int seed = 42) {
     FineSet<int> set;
     auto vals = GenVals(size, seed);
@@ -241,11 +229,6 @@ public:
 
   static void GeneralFuncTest(int sizeForReading, int sizeForWriting, int seed = 42) {
     auto vals = GenVals(sizeForWriting, seed);
-    // std::sort(vals.begin(), vals.end());
-    //debug std::cout << "generated values: ";
-    //debug for (auto v : vals)
-        //debug std::cout << v << " ";
-    //debug std::cout << std::endl;
     int maxThreads = sysconf(_SC_NPROCESSORS_ONLN);
 
     int n_readers = 1;
@@ -261,7 +244,6 @@ public:
       std::vector<int> readCheckArr(sizeForReading, 0);
 	  std::vector<int> writeCheckArr(sizeForWriting, 0);
       GeneralTest(n_readers, n_writers, set, vals, readCheckArr, writeCheckArr);
-    //   set.Print();
       std::string resultWriting = "success";
       for (int v : writeCheckArr) {
         if (!v) {
@@ -374,3 +356,4 @@ public:
 
 pthread_cond_t Tester::cv = PTHREAD_COND_INITIALIZER;
 bool Tester::start = false;
+int Tester::timeout_sec = -1;
