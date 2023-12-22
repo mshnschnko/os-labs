@@ -21,10 +21,9 @@ private:
     int begin;
     int end;
     const std::vector<int>* vals;
-	std::vector<int>* checkArray;
 
-    write_args_t(FineSet<int>* set, int begin, int end, const std::vector<int>* vals, std::vector<int>* checkArray) :
-      set(set), begin(begin), end(end), vals(vals), checkArray(checkArray) {}
+    write_args_t(FineSet<int>* set, int begin, int end, const std::vector<int>* vals) :
+      set(set), begin(begin), end(end), vals(vals) {}
   };
 
   struct read_args_t {
@@ -42,7 +41,7 @@ private:
   }
 
   static std::vector<int> GenVals(int size, int seed) {
-    constexpr int MIN = 0;
+    const int MIN = size;
     const int MAX = 3 * size;
 
     std::vector<int> res;
@@ -74,9 +73,6 @@ private:
     Synchronize();
     for (int i = args->begin; i < args->end; ++i) {
     	args->set->Add((*(args->vals))[i]);
-		if (args->set->Contains((*(args->vals))[i])) {
-			(*args->checkArray)[i] = 1;
-		}
 	}
 
     return (void*)nullptr;
@@ -98,7 +94,7 @@ private:
   }
 
   static void PrepareWritersThreads(FineSet<int>& set, const std::vector<int>& vals, 
-    std::vector<pthread_t>& threads, std::vector<write_args_t>& args, std::vector<int>& checkArr) {
+    std::vector<pthread_t>& threads, std::vector<write_args_t>& args) {
     int n_writers = (int)threads.size();
     args.reserve(n_writers);
 
@@ -110,17 +106,17 @@ private:
     for (int i = 0; i < n_writers; ++i) {
       if (i == n_writers - 1)
         end = size;
-      args.emplace_back(&set, begin, end, &vals, &checkArr);
+      args.emplace_back(&set, begin, end, &vals);
       pthread_create(&threads[i], nullptr, _write, (void*)&args.back());
       begin += step;
       end += step;
     }
   }
 
-  static long long WritersTest(int n_writers, FineSet<int>& set, const std::vector<int>& vals, std::vector<int>& checkArr) {
+  static long long WritersTest(int n_writers, FineSet<int>& set, const std::vector<int>& vals) {
     std::vector<pthread_t> threads(n_writers);
     std::vector<write_args_t> args;
-    PrepareWritersThreads(set, vals, threads, args, checkArr);
+    PrepareWritersThreads(set, vals, threads, args);
 
     auto t1 = std::chrono::high_resolution_clock::now();
     Start();
@@ -160,14 +156,14 @@ private:
   }
 
   static long long GeneralTest(int n_readers, int n_writers, FineSet<int>& set, 
-    const std::vector<int>& vals, std::vector<int>& readCheckArr, std::vector<int>& writeCheckArr) {
+    const std::vector<int>& vals, std::vector<int>& readCheckArr) {
     std::vector<pthread_t> readers(n_readers);
     std::vector<read_args_t> readersArgs;
     std::vector<pthread_t> writers(n_writers);
     std::vector<write_args_t> writersArgs;
 
     PrepareReadersThreads(set, readCheckArr, readers, readersArgs);
-    PrepareWritersThreads(set, vals, writers, writersArgs, writeCheckArr);
+    PrepareWritersThreads(set, vals, writers, writersArgs);
 
     auto t1 = std::chrono::high_resolution_clock::now();
     Start();
@@ -187,12 +183,11 @@ public:
   static void WritersFuncTest(int n_writers, int size, int seed = 42) {
     FineSet<int> set;
     auto vals = GenVals(size, seed);
-	std::vector<int> checkArr(size, 0);
-    WritersTest(n_writers, set, vals, checkArr);
+    WritersTest(n_writers, set, vals);
 
     std::string result = "success";
-    for (int v : checkArr) {
-      if (!v) {
+    for (int v : vals) {
+      if (!set.Contains(v)) {
         result = "fail (miss value)";
         break;
       }
@@ -242,11 +237,10 @@ public:
       for (int i = 0; i < sizeForReading; ++i)
         set.Add(i);
       std::vector<int> readCheckArr(sizeForReading, 0);
-	  std::vector<int> writeCheckArr(sizeForWriting, 0);
-      GeneralTest(n_readers, n_writers, set, vals, readCheckArr, writeCheckArr);
+      GeneralTest(n_readers, n_writers, set, vals, readCheckArr);
       std::string resultWriting = "success";
-      for (int v : writeCheckArr) {
-        if (!v) {
+      for (int v : vals) {
+        if (!set.Contains(v)) {
           resultWriting = "fail (miss value)";
           break;
         }
@@ -272,11 +266,10 @@ public:
 
     long long dt = 0;
     int num_of_performed_tests = 0;
-	std::vector<int> checkArr(size, 0);
     auto start_time = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < numOfTests; ++i, ++num_of_performed_tests) {
       FineSet<int> set;
-      dt += WritersTest(n_writers, set, vals, checkArr);
+      dt += WritersTest(n_writers, set, vals);
       auto end_time = std::chrono::high_resolution_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
       if (duration > timeout_sec) {
@@ -335,8 +328,7 @@ public:
         for (int i = 0; i < sizeForReading; ++i)
           set.Add(i);
         std::vector<int> readCheckArr(sizeForReading, 0);
-		std::vector<int> writeCheckArr(sizeForWriting, 0);
-        dt += GeneralTest(n_readers, n_writers, set, vals, readCheckArr, writeCheckArr);
+        dt += GeneralTest(n_readers, n_writers, set, vals, readCheckArr);
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
         if (duration > timeout_sec) {
