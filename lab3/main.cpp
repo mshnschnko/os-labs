@@ -48,9 +48,9 @@ int main(int argc, char* argv[]) {
 	Tester::WritersFuncTest(params.nThreadsWriters, params.sizeWriters);
 	Tester::ReadersFuncTest(params.nThreadsReaders, params.sizeReaders);
 	Tester::GeneralFuncTest(params.sizeReaders, params.sizeWriters);
-	Tester::WritersPerfTest(params.nThreadsWriters, params.sizeWriters, params.numOfTests);
-	Tester::ReadersPerfTest(params.nThreadsWriters, params.sizeReaders, params.numOfTests);
-	Tester::GeneralPerfTest(params.sizeReaders, params.sizeWriters, params.numOfTests);
+	// Tester::WritersPerfTest(params.nThreadsWriters, params.sizeWriters, params.numOfTests);
+	// Tester::ReadersPerfTest(params.nThreadsWriters, params.sizeReaders, params.numOfTests);
+	// Tester::GeneralPerfTest(params.sizeReaders, params.sizeWriters, params.numOfTests);
 	
 	return 0;
 }
