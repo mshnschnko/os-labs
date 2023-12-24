@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <algorithm>
+#include <string>
 
 class Tester {
 private:
@@ -123,7 +124,7 @@ private:
     
     auto t2 = std::chrono::high_resolution_clock::now();
 
-    return std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
   }
 
   static void PrepareReadersThreads(FineSet<int>& set, std::vector<int>& checkArr,
@@ -150,7 +151,7 @@ private:
       pthread_join(threads[i], nullptr);
     auto t2 = std::chrono::high_resolution_clock::now();
 
-    return std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
   }
 
   static long long GeneralTest(int n_readers, int n_writers, FineSet<int>& set, 
@@ -172,7 +173,7 @@ private:
       pthread_join(readers[i], nullptr);
     auto t2 = std::chrono::high_resolution_clock::now();
 
-    return std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    return std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
   }
 
 public:
@@ -263,9 +264,9 @@ public:
     auto vals = GenVals(n_writers, 3 * n_writers, size, seed);
 
     long long dt = 0;
-    int num_of_performed_tests = 0;
+    int num_of_performed_tests;
     auto start_time = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < numOfTests; ++i, ++num_of_performed_tests) {
+    for (num_of_performed_tests = 0; num_of_performed_tests < numOfTests; ++num_of_performed_tests) {
       FineSet<int> set;
       dt += WritersTest(n_writers, set, vals);
       auto end_time = std::chrono::high_resolution_clock::now();
@@ -275,9 +276,14 @@ public:
         break;
       }
     }
-
+    int time_per_test = dt / (num_of_performed_tests+1);
+    std::string time_format = " mcs";
+    if (time_per_test / 1000 >= 1) {
+      time_per_test /= 1000;
+      time_format = " ms";
+    }
     std::cout << "Writing performance test\tn_writers: " << n_writers << "\tsize: " << size <<
-      "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
+      "\ttime: " << time_per_test << time_format << std::endl;
   }
 
   static void ReadersPerfTest(int n_readers, int size, int numOfTests) {
@@ -301,9 +307,14 @@ public:
         break;
       }
     }
-
+    int time_per_test = dt / (num_of_performed_tests+1);
+    std::string time_format = " mcs";
+    if (time_per_test / 1000 >= 1) {
+      time_per_test /= 1000;
+      time_format = " ms";
+    }
     std::cout << "Reading performance test\tn_readers: " << n_readers << "\tsize: " << size <<
-      "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
+      "\ttime: " << time_per_test << time_format << std::endl;
   }
 
   static void GeneralPerfTest(int sizeForReading, int sizeForWriting, int numOfTests, int seed = 42) {
@@ -319,9 +330,9 @@ public:
 
     while (n_readers < maxThreads) {
       long long dt = 0;
-      int num_of_performed_tests = 0;
+      int num_of_performed_tests;
       auto start_time = std::chrono::high_resolution_clock::now();
-      for (int j = 0; j < numOfTests; ++j, ++num_of_performed_tests) {
+      for (num_of_performed_tests = 0; num_of_performed_tests < numOfTests; ++num_of_performed_tests) {
         FineSet<int> set;
         for (int i = 0; i < sizeForReading; ++i)
           set.Add(i);
@@ -334,9 +345,14 @@ public:
             break;
         }
       }
-
+      int time_per_test = dt / (num_of_performed_tests+1);
+      std::string time_format = " mcs";
+      if (time_per_test / 1000 >= 1) {
+        time_per_test /= 1000;
+        time_format = " ms";
+      }
       std::cout << "n_readers: " << n_readers << "\tn_writers: " << n_writers <<
-       "\ttime: " << dt / (num_of_performed_tests+1) << " ms" << std::endl;
+       "\ttime: " << time_per_test << time_format << std::endl;
 
       ++n_readers;
       --n_writers;
